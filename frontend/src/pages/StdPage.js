@@ -8,33 +8,31 @@ const StdPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   
-  // 重新组织选项结构，默认选中所有选项
+  // 金融术语类型选项
   const [options, setOptions] = useState({
-    disease: true,
-    combineBioStructure: true,
-    medicine: true,
-    laboratory: true,
-    physicalExamination: true,
-    surgeryProcedure: true,
-    radiology: true,
-    commonMedicalObservations: true,
-    lifestyleObservations: true,
-    cognitiveBehaviorItems: true,
-    allMedicalTerms: true,
+    allFinancialTerms: true,
+    stocks: true,
+    bonds: true,
+    derivatives: true,
+    forex: true,
+    commodities: true,
+    mutualFunds: true,
+    etf: true,
+    banking: true,
+    insurance: true,
+    fintech: true,
   });
 
   const [embeddingOptions, setEmbeddingOptions] = useState({
     provider: 'huggingface',
     model: 'BAAI/bge-m3',
-    dbName: 'snomed_bge_m3',
-    collectionName: 'concepts_only_name'
+    dbName: 'finance_terms_simple',
+    collectionName: 'finance_terms'
   });
 
   const handleOptionChange = (e) => {
     const { name, checked } = e.target;
-    
-    if (name === 'allMedicalTerms') {
-      // 如果选择 allMedicalTerms，则设置所有选项为相同状态
+    if (name === 'allFinancialTerms') {
       setOptions(prevOptions => {
         const newOptions = {};
         Object.keys(prevOptions).forEach(key => {
@@ -43,14 +41,12 @@ const StdPage = () => {
         return newOptions;
       });
     } else {
-      // 更新单个选项
       setOptions(prevOptions => ({
         ...prevOptions,
         [name]: checked,
-        // 如果取消选择任何一个选项，allMedicalTerms 也取消选择
-        allMedicalTerms: checked && 
+        allFinancialTerms: checked &&
           Object.entries(prevOptions)
-            .filter(([key]) => key !== 'allMedicalTerms' && key !== name)
+            .filter(([key]) => key !== 'allFinancialTerms' && key !== name)
             .every(([, value]) => value)
       }));
     }
@@ -69,7 +65,7 @@ const StdPage = () => {
     setError('');
     setResult('');
     try {
-      const response = await fetch('http://172.20.116.213:8000/api/std', {
+      const response = await fetch('http://127.0.0.1:8000/api/std', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,7 +77,7 @@ const StdPage = () => {
         }),
       });
       const data = await response.json();
-      setResult(JSON.stringify(data, null, 2));
+      setResult(data);
     } catch (error) {
       console.error('Error:', error);
       setError(`An error occurred: ${error.message}`);
@@ -89,18 +85,118 @@ const StdPage = () => {
     setIsLoading(false);
   };
 
+  // 渲染金融术语类型选项
+  const financialTypes = [
+    ['stocks', '股票'],
+    ['bonds', '债券'],
+    ['derivatives', '衍生品'],
+    ['forex', '外汇'],
+    ['commodities', '大宗商品'],
+    ['mutualFunds', '共同基金'],
+    ['etf', '交易所交易基金'],
+    ['banking', '银行业务'],
+    ['insurance', '保险'],
+    ['fintech', '金融科技'],
+  ];
+
+  // 渲染结果
+  const renderResult = () => {
+    if (!result) return null;
+    
+    // 处理后端返回的数据结构
+    if (result.standardized_terms && Array.isArray(result.standardized_terms)) {
+      return (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+          <p className="font-bold">标准化结果：</p>
+          <p className="mb-4">{result.message}</p>
+          {result.standardized_terms.map((item, idx) => (
+            <div key={idx} className="mb-4 p-3 bg-white rounded border">
+              <div className="font-semibold text-blue-600">
+                原始术语：{item.original_term}
+              </div>
+              <div className="text-sm text-gray-600 mb-2">
+                实体类型：{item.entity_group}
+              </div>
+              {item.standardized_results && item.standardized_results.length > 0 ? (
+                <div>
+                  <div className="font-medium mb-2">标准化建议：</div>
+                  <ul className="list-disc pl-6 space-y-2">
+                    {item.standardized_results.map((std, stdIdx) => (
+                      <li key={stdIdx} className="text-sm">
+                        <div><b>标准术语：</b>{std.term}</div>
+                        <div><b>分类：</b>{std.category}</div>
+                        <div><b>相似度：</b>
+                          {std.similarity !== undefined ? (std.similarity * 100).toFixed(2) + '%' : '-'}
+                        </div>
+                        {std.distance !== undefined && (
+                          <div><b>距离：</b>{std.distance.toFixed(4)}</div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <div className="text-gray-500">未找到相关标准化术语</div>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    } else if (Array.isArray(result)) {
+      // 直接返回数组的情况
+      return (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+          <p className="font-bold">标准化结果：</p>
+          <ul className="list-disc pl-6">
+            {result.map((item, idx) => (
+              <li key={idx} className="mb-2">
+                <div><b>术语：</b>{item.term}</div>
+                <div><b>分类：</b>{item.category}</div>
+                <div><b>数据来源：</b>{item.input_file}</div>
+                <div><b>相似度：</b>
+                  {item.similarity !== undefined ? (item.similarity * 100).toFixed(2) + '%' : '-'}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    } else if (typeof result === 'object') {
+      // 单个对象的情况
+      return (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+          <p className="font-bold">标准化结果：</p>
+          <div><b>术语：</b>{result.term}</div>
+          <div><b>分类：</b>{result.category}</div>
+          <div><b>数据来源：</b>{result.input_file}</div>
+          <div><b>相似度：</b>
+            {result.similarity !== undefined ? (result.similarity * 100).toFixed(2) + '%' : '-'}
+          </div>
+        </div>
+      );
+    } else {
+      // 其他情况，显示原始数据
+      return (
+        <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
+          <p className="font-bold">结果：</p>
+          <pre className="whitespace-pre-wrap">{JSON.stringify(result, null, 2)}</pre>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">医疗术语标准化 📚</h1>
+      <h1 className="text-3xl font-bold mb-6">金融术语标准化 📚</h1>
       <div className="grid grid-cols-3 gap-6">
         {/* 左侧面板：文本输入和嵌入选项 */}
         <div className="col-span-2 bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">输入医疗术语</h2>
+          <h2 className="text-xl font-semibold mb-4">输入金融术语</h2>
           <TextInput
             value={input}
             onChange={(e) => setInput(e.target.value)}
             rows={4}
-            placeholder="请输入需要标准化的医疗术语..."
+            placeholder="请输入需要标准化的金融术语，例如：股票、债券、期权、期货等..."
           />
           
           <EmbeddingOptions options={embeddingOptions} onChange={handleEmbeddingOptionChange} />
@@ -116,43 +212,9 @@ const StdPage = () => {
 
         {/* 右侧面板：选项列表 */}
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-4">术语类型</h2>
+          <h2 className="text-xl font-semibold mb-4">金融术语类型</h2>
           <div className="space-y-3">
-            <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="disease"
-                name="disease"
-                checked={options.disease}
-                onChange={handleOptionChange}
-                className="mr-2"
-              />
-              <label htmlFor="disease">疾病</label>
-              {options.disease && (
-                <div className="ml-6">
-                  <input
-                    type="checkbox"
-                    id="combineBioStructure"
-                    name="combineBioStructure"
-                    checked={options.combineBioStructure}
-                    onChange={handleOptionChange}
-                    className="mr-2"
-                  />
-                  <label htmlFor="combineBioStructure">合并生物结构</label>
-                </div>
-              )}
-            </div>
-            
-            {[
-              ['medicine', '药物'],
-              ['laboratory', '实验室检查'],
-              ['physicalExamination', '体格检查'],
-              ['surgeryProcedure', '手术/操作'],
-              ['radiology', '放射检查'],
-              ['commonMedicalObservations', '常见医学观察'],
-              ['lifestyleObservations', '生活方式观察'],
-              ['cognitiveBehaviorItems', '认知行为项目'],
-            ].map(([key, label]) => (
+            {financialTypes.map(([key, label]) => (
               <div key={key} className="flex items-center">
                 <input
                   type="checkbox"
@@ -169,13 +231,13 @@ const StdPage = () => {
             <div className="flex items-center pt-4 border-t">
               <input
                 type="checkbox"
-                id="allMedicalTerms"
-                name="allMedicalTerms"
-                checked={options.allMedicalTerms}
+                id="allFinancialTerms"
+                name="allFinancialTerms"
+                checked={options.allFinancialTerms}
                 onChange={handleOptionChange}
                 className="mr-2"
               />
-              <label htmlFor="allMedicalTerms" className="font-semibold">所有医疗术语</label>
+              <label htmlFor="allFinancialTerms" className="font-semibold">所有金融术语</label>
             </div>
           </div>
         </div>
@@ -190,12 +252,7 @@ const StdPage = () => {
               <p>{error}</p>
             </div>
           )}
-          {result && (
-            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-              <p className="font-bold">结果：</p>
-              <pre>{result}</pre>
-            </div>
-          )}
+          {renderResult()}
         </div>
       )}
 

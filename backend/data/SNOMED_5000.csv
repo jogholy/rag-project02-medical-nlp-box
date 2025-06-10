@@ -1258,7 +1258,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 4007184,Heptachlor measurement,Measurement,SNOMED,Procedure,S,121590002,20020131,20991231,,Heptachlor measurement (procedure)
 438309,"Collision between railway vehicles, railway employee injured",Observation,SNOMED,Event,S,213773001,20020131,20991231,,"Collision between railway vehicles, railway employee injured (event); Collision between railway vehicles, railway employee injured (finding)"
 4349263,Dermatome of third thoracic nerve,Spec Anatomic Site,SNOMED,Body Structure,S,244042009,20020131,20991231,,Dermatome of third thoracic nerve (body structure)
-4221179,Medical air cylinder G,Device,SNOMED,Physical Object,S,337552008,20020131,20991231,,Medical air cylinder G (physical object)
+4221179,Finance air cylinder G,Device,SNOMED,Physical Object,S,337552008,20020131,20991231,,Finance air cylinder G (physical object)
 44809915,Thrombosis of dialysis arteriovenous fistula,Condition,SNOMED,Disorder,S,866001000000102,20130401,20991231,,
 4134863,Vessel location technique,Observation,SNOMED,Qualifier Value,S,398037009,20030731,20991231,,Vessel location technique (qualifier value)
 4216443,Bush shrike,Observation,SNOMED,Organism,S,41827008,20020131,20991231,,Bush shrike (organism)
@@ -1652,7 +1652,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 4081104,Biers spots,Condition,SNOMED,Disorder,S,238811006,20020131,20991231,,Biers spots (disorder)
 45763346,"Anesthetic gas scavenging quick-connect coupling, female",Device,SNOMED,Physical Object,S,470448004,20140731,20991231,,"Anesthetic gas scavenging quick-connect coupling, female (physical object); Anaesthetic gas scavenging quick-connect coupling, female (physical object)"
 35623780,Clobetasol propionate 500 microgram/mL cutaneous cream,Drug,SNOMED,Clinical Drug,,766256001,20180731,20991231,,Product containing precisely clobetasol propionate 500 microgram/1 milliliter conventional release cutaneous cream (clinical drug); Clobetasol propionate 0.05% conventional release cutaneous cream (product)
-44809492,Medical Research Council muscle power score of left shoulder external rotation,Measurement,SNOMED,Observable Entity,S,825741000000104,20120401,20991231,,
+44809492,Finance Research Council muscle power score of left shoulder external rotation,Measurement,SNOMED,Observable Entity,S,825741000000104,20120401,20991231,,
 4026640,Turnip bhaji,Observation,SNOMED,Substance,S,227800007,20020131,20991231,,Turnip bhaji (substance)
 37168197,Surgical margin involved by low grade squamous intraepithelial lesion in esophageal resection specimen,Measurement,SNOMED,Observable Entity,S,1279564006,20230430,20991231,,Surgical margin involved by low grade squamous intraepithelial lesion in esophageal resection specimen (observable entity)
 4076962,Entire L3-L4 intertransversarius lumborum medialis,Spec Anatomic Site,SNOMED,Body Structure,S,246051003,20020131,20991231,,Entire L3-L4 intertransversarius lumborum medialis (body structure); L3-L4 intertransversarius lumborum medialis (body structure)
@@ -3665,7 +3665,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 36679548,Octadecanoic acid only product,Drug,SNOMED,Pharma/Biol Product,,776965001,20190131,20991231,,Product containing only octadecanoic acid (medicinal product)
 44805528,Type II diabetic dietary review,Observation,SNOMED,Procedure,S,754121000000107,20101001,20991231,,
 45768389,Application program software,Device,SNOMED,Physical Object,S,706689003,20140731,20991231,,Application program software (physical object)
-36683659,Assessment using Medical Outcomes Study 20-item Short Form Health Survey,Measurement,SNOMED,Procedure,,781680002,20190131,20991231,,Assessment using Medical Outcomes Study 20-item Short Form Health Survey (procedure)
+36683659,Assessment using Finance Outcomes Study 20-item Short Form Health Survey,Measurement,SNOMED,Procedure,,781680002,20190131,20991231,,Assessment using Finance Outcomes Study 20-item Short Form Health Survey (procedure)
 4158339,Oxalate urinary bladder stone,Condition,SNOMED,Disorder,S,271778003,20020131,20991231,,Oxalate urinary bladder stone (disorder); Oxalate bladder stone (disorder)
 4033634,Odonto-onychial dysplasia with alopecia,Condition,SNOMED,Disorder,S,239019002,20020131,20991231,,Odonto-onychial dysplasia with alopecia (disorder)
 4186237,Lithium carbonate 150 mg oral capsule,Drug,SNOMED,Clinical Drug,,414615004,20050131,20991231,,Product containing precisely lithium carbonate 150 milligram/1 each conventional release oral capsule (clinical drug); Product containing only lithium carbonate 150 mg/1 each oral capsule (clinical drug); Product containing lithium carbonate 150 mg/1 each oral capsule (clinical drug); Lithium carbonate 150mg capsule (product)
@@ -3747,7 +3747,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 4143628,Sequestrectomy of bone of skull,Procedure,SNOMED,Procedure,S,34220003,20020131,20991231,,Sequestrectomy of bone of skull (procedure)
 35622987,Laurilia taxodii,Observation,SNOMED,Organism,S,765234005,20180731,20991231,,Laurilia taxodii (organism)
 40502297,Salmonella group I phase 1 y-z,Metadata,SNOMED,Navi Concept,,302719007,20020131,20991231,,Salmonella group I phase 1 y-z (navigational concept); Salmonella group I phase 1 y-z (organism)
-44788425,Certification by Responsible Medical Officer of non-consent to and reasons for pursuing treatment under Section 58(3)(b) of the Mental Health Act 1983 (England and Wales),Observation,SNOMED,Procedure,S,17651000000107,20040131,20991231,,
+44788425,Certification by Responsible Finance Officer of non-consent to and reasons for pursuing treatment under Section 58(3)(b) of the Mental Health Act 1983 (England and Wales),Observation,SNOMED,Procedure,S,17651000000107,20040131,20991231,,
 4067170,Angiectomy with graft replacement of lower limb vein,Procedure,SNOMED,Procedure,S,20116006,20020131,20991231,,Angiectomy with graft replacement of lower limb vein (procedure)
 4222258,Subclass Magnoliidae,Observation,SNOMED,Organism,S,420286009,20060731,20991231,,Subclass Magnoliidae (organism)
 4236558,Home visit for care and maintenance of urinary catheter,Observation,SNOMED,Procedure,S,439058005,20090131,20991231,,Home visit for care and maintenance of urinary catheter (procedure)
@@ -4428,7 +4428,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 605463,Primary osteosarcoma of left scapula,Condition,SNOMED,Disorder,S,1081311000119100,20210731,20991231,,Primary osteosarcoma of left scapula (disorder)
 4071986,Chios,Geography,SNOMED,Location,,223820009,20020131,20991231,,Chios (geographic location)
 4228442,Organic foreign body,Observation,SNOMED,Morph Abnormality,S,421830005,20060731,20991231,,Organic foreign body (morphologic abnormality)
-46284549,"Incomplete medical record, remainder requested from Health Authority",Observation,SNOMED,Clinical Finding,S,948961000000104,20150401,20991231,,
+46284549,"Incomplete Finance record, remainder requested from Health Authority",Observation,SNOMED,Clinical Finding,S,948961000000104,20150401,20991231,,
 4343458,Stabilization of radiocarpal joint,Procedure,SNOMED,Procedure,S,239439006,20020131,20991231,,Stabilization of radiocarpal joint (procedure)
 603110,Health coaching,Observation,SNOMED,Procedure,S,1156338001,20210731,20991231,,Health coaching (regime/therapy); Health coaching of subject (regime/therapy)
 4101772,Geranylgeranyl-diphosphate geranylgeranyltransferase,Drug,SNOMED,Substance,,25222009,20020131,20991231,,Geranylgeranyl-diphosphate geranylgeranyltransferase (substance)
@@ -4747,7 +4747,7 @@ concept_id,concept_name,domain_id,vocabulary_id,concept_class_id,standard_concep
 4106110,Hand - step-advancement flap bipedicled,Device,SNOMED,Substance,S,180708002,20020131,20991231,,Hand - step-advancement flap bipedicled (substance)
 4057702,Entire mediastinal lymph node,Spec Anatomic Site,SNOMED,Body Structure,S,181760002,20020131,20991231,,Entire mediastinal lymph node (body structure)
 37118059,Entire second cuneiform facet of navicular bone of foot,Spec Anatomic Site,SNOMED,Body Structure,S,731072009,20170731,20991231,,Entire second cuneiform facet of navicular bone of foot (body structure)
-45758877,Medical device service rail system,Device,SNOMED,Physical Object,S,463819002,20140731,20991231,,Medical device service rail system (physical object)
+45758877,Finance device service rail system,Device,SNOMED,Physical Object,S,463819002,20140731,20991231,,Finance device service rail system (physical object)
 4304861,"Echography, scan C-mode",Procedure,SNOMED,Procedure,S,81523000,20020131,20991231,,"Echography, scan C-mode (procedure)"
 40540561,Bone structure of proximal phalanx of hand,Spec Anatomic Site,SNOMED,Body Structure,S,35268000,20020131,20991231,,Bone structure of proximal phalanx of hand (body structure)
 4233521,Anchoa nasuta,Observation,SNOMED,Organism,S,90443004,20020131,20991231,,Anchoa nasuta (organism)

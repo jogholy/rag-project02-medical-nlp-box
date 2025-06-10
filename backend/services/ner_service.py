@@ -1,6 +1,8 @@
 from transformers import pipeline
 import torch
 import logging
+import os
+import re
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -8,131 +10,123 @@ logger = logging.getLogger(__name__)
 
 class NERService:
     """
-    医学术语命名实体识别服务
-    使用 Clinical-AI-Apollo/Medical-NER 模型进行医疗文本的实体识别
+    金融术语命名实体识别服务
+    使用规则基础的方法进行金融文本的实体识别
     """
     def __init__(self):
-        # 初始化 NER 模型，使用 GPU 如果可用
-        self.pipe = pipeline("token-classification", 
-                           model="Clinical-AI-Apollo/Medical-NER", 
-                           aggregation_strategy='simple',
-                           device=0 if torch.cuda.is_available() else -1)
+        self.financial_patterns = self._initialize_patterns()
+        logger.info("NER service initialized with rule-based patterns")
+    
+    def _initialize_patterns(self):
+        """初始化金融术语识别模式"""
+        patterns = {
+            'STOCK': [
+                r'股票', r'股份', r'股权', r'A股', r'B股', r'H股', r'蓝筹股', r'成长股', r'价值股', 
+                r'小盘股', r'大盘股', r'新股', r'次新股', r'ST股', r'\*ST股', r'退市股'
+            ],
+            'STOCK_INDEX': [
+                r'上证指数', r'深证成指', r'创业板指', r'科创50', r'沪深300', r'中证500', 
+                r'上证50', r'中证1000', r'恒生指数', r'道琼斯', r'纳斯达克', r'标普500'
+            ],
+            'INVESTMENT': [
+                r'投资', r'理财', r'基金', r'债券', r'期货', r'期权', r'外汇', r'黄金', 
+                r'白银', r'原油', r'房地产', r'REITs', r'ETF', r'LOF', r'QDII'
+            ],
+            'FINANCIAL_INSTITUTION': [
+                r'银行', r'证券公司', r'基金公司', r'保险公司', r'信托公司', r'期货公司',
+                r'投资银行', r'商业银行', r'政策性银行', r'央行', r'证监会', r'银保监会'
+            ],
+            'FINANCIAL_TERM': [
+                r'收益率', r'风险', r'波动率', r'市盈率', r'市净率', r'股息率', r'换手率',
+                r'成交量', r'成交额', r'涨跌幅', r'涨停', r'跌停', r'停牌', r'复牌',
+                r'配股', r'增发', r'分红', r'送股', r'转增', r'除权', r'除息'
+            ],
+            'CURRENCY': [
+                r'人民币', r'美元', r'欧元', r'日元', r'英镑', r'港币', r'澳元', r'加元',
+                r'瑞士法郎', r'新加坡元', r'韩元', r'泰铢', r'卢布', r'印度卢比'
+            ],
+            'MARKET': [
+                r'股市', r'债市', r'汇市', r'期市', r'房市', r'金市', r'油市', r'牛市', r'熊市',
+                r'主板', r'创业板', r'科创板', r'新三板', r'北交所', r'上交所', r'深交所'
+            ]
+        }
+        return patterns
   
     def process(self, text, options, term_types):
         """
-        处理输入文本，识别医学术语实体
+        处理输入文本，识别金融术语实体
         
         Args:
             text: 输入文本
-            options: 处理选项，如是否合并生物结构
+            options: 处理选项
             term_types: 需要识别的术语类型
             
         Returns:
             包含识别出的实体和原始文本的字典
         """
-        # 使用模型进行实体识别
-        result = self.pipe(text)
-        
-        # 确保结果是实体列表
-        if isinstance(result, dict):
-            result = result.get('entities', [])
-        
-        # 合并相关实体（如生物结构和症状）
-        combined_result = self._combine_entities(result, text, options)
-        
-        # 移除重叠实体
-        non_overlapping_result = self._remove_overlapping_entities(combined_result)
-        
-        # 根据术语类型过滤实体
-        filtered_result = self._filter_entities(non_overlapping_result, term_types)
-        
-        return {
-            "text": text,
-            "entities": filtered_result
-        }
+        try:
+            # 使用规则基础的方法进行实体识别
+            entities = self._extract_entities(text)
+            
+            # 根据术语类型过滤实体
+            filtered_entities = self._filter_entities(entities, term_types)
+            
+            return {
+                "text": text,
+                "entities": filtered_entities
+            }
+        except Exception as e:
+            logger.error(f"Error processing text with NER: {e}")
+            return {
+                "text": text,
+                "entities": [],
+                "error": f"Processing error: {str(e)}"
+            }
 
-    def _combine_entities(self, result, text, options):
-        """
-        合并相关的实体，如生物结构和症状
-        """
-        combined_result = []
-        i = 0
-        while i < len(result):
-            entity = result[i]
-            entity['score'] = float(entity['score'])
-
-            if options['combineBioStructure'] and entity['entity_group'] in ['SIGN_SYMPTOM', 'DISEASE_DISORDER']:
-                # 检查并合并生物结构
-                combined_entity = self._try_combine_with_bio_structure(result, i, text)
-                if combined_entity:
-                    combined_result.append(combined_entity)
-                    i += 1
-                    continue
-            combined_result.append(entity)
-            i += 1
-        return combined_result
-
-    def _try_combine_with_bio_structure(self, result, i, text):
-        """
-        尝试将当前实体与生物结构实体合并
-        """
-        # 检查前一个实体
-        if i > 0 and result[i-1]['entity_group'] == 'BIOLOGICAL_STRUCTURE':
-            return self._create_combined_entity(result[i-1], result[i], text)
-        # 检查后一个实体
-        elif i < len(result) - 1 and result[i+1]['entity_group'] == 'BIOLOGICAL_STRUCTURE':
-            return self._create_combined_entity(result[i], result[i+1], text)
-        return None
-
-    def _create_combined_entity(self, entity1, entity2, text):
-        """
-        创建合并后的实体
-        """
-        start = min(entity1['start'], entity2['start'])
-        end = max(entity1['end'], entity2['end'])
-        word = text[start:end]
-        return {
-            'entity_group': 'COMBINED_BIO_SYMPTOM',
-            'word': word,
-            'start': start,
-            'end': end,
-            'score': (entity1['score'] + entity2['score']) / 2,
-            'original_entities': [entity1, entity2]
-        }
+    def _extract_entities(self, text):
+        """使用规则基础的方法提取金融实体"""
+        entities = []
+        
+        logger.info(f"Extracting entities from text: {text}")
+        
+        for entity_type, patterns in self.financial_patterns.items():
+            logger.info(f"Processing entity type: {entity_type}")
+            for pattern in patterns:
+                matches = re.finditer(pattern, text)
+                for match in matches:
+                    entity = {
+                        'entity_group': entity_type,
+                        'word': match.group(),
+                        'start': match.start(),
+                        'end': match.end(),
+                        'score': 0.9  # 规则基础的方法给予较高置信度
+                    }
+                    entities.append(entity)
+                    logger.info(f"Found entity: {entity}")
+        
+        # 移除重叠实体，保留最长的
+        entities = self._remove_overlapping_entities(entities)
+        logger.info(f"Final entities after removing overlaps: {entities}")
+        
+        return entities
 
     def _remove_overlapping_entities(self, entities):
-        """
-        移除重叠的实体，保留得分最高的实体
-        """
-        # 按开始位置、结束位置（降序）和得分（降序）排序
-        sorted_entities = sorted(entities, key=lambda x: (x['start'], -x['end'], -x['score']))
+        """移除重叠的实体，保留最长的实体"""
+        # 按开始位置排序
+        sorted_entities = sorted(entities, key=lambda x: x['start'])
         non_overlapping = []
         last_end = -1
 
-        i = 0
-        while i < len(sorted_entities):
-            current = sorted_entities[i]
-            
+        for entity in sorted_entities:
             # 如果当前实体与之前的实体不重叠，直接添加
-            if current['start'] >= last_end:
-                non_overlapping.append(current)
-                last_end = current['end']
-                i += 1
+            if entity['start'] >= last_end:
+                non_overlapping.append(entity)
+                last_end = entity['end']
             else:
-                # 处理重叠实体
-                same_span = [current]
-                j = i + 1
-                while j < len(sorted_entities) and sorted_entities[j]['start'] == current['start'] and sorted_entities[j]['end'] == current['end']:
-                    same_span.append(sorted_entities[j])
-                    j += 1
-                
-                # 选择得分最高的实体
-                best_entity = max(same_span, key=lambda x: x['score'])
-                if best_entity['end'] > last_end:
-                    non_overlapping.append(best_entity)
-                    last_end = best_entity['end']
-                
-                i = j
+                # 如果重叠，保留较长的实体
+                if entity['end'] - entity['start'] > last_end - non_overlapping[-1]['start']:
+                    non_overlapping[-1] = entity
+                    last_end = entity['end']
 
         return non_overlapping
 
@@ -140,14 +134,27 @@ class NERService:
         """
         根据术语类型过滤实体
         """
+        if not term_types:
+            return entities
+            
         filtered_result = []
         for entity in entities:
-            if term_types.get('allMedicalTerms', False):
+            # 如果启用了所有金融术语，则包含所有实体
+            if term_types.get('allFinancialTerms', False):
                 filtered_result.append(entity)
-            elif (term_types.get('symptom', False) and entity['entity_group'] in ['SIGN_SYMPTOM', 'COMBINED_BIO_SYMPTOM']) or \
-                 (term_types.get('disease', False) and entity['entity_group'] == 'DISEASE_DISORDER') or \
-                 (term_types.get('therapeuticProcedure', False) and entity['entity_group'] == 'THERAPEUTIC_PROCEDURE'):
+            # 否则根据具体类型过滤
+            elif (term_types.get('stocks', False) and entity['entity_group'] == 'STOCK') or \
+                 (term_types.get('bonds', False) and entity['entity_group'] == 'INVESTMENT') or \
+                 (term_types.get('derivatives', False) and entity['entity_group'] == 'INVESTMENT') or \
+                 (term_types.get('forex', False) and entity['entity_group'] == 'CURRENCY') or \
+                 (term_types.get('commodities', False) and entity['entity_group'] == 'INVESTMENT') or \
+                 (term_types.get('mutualFunds', False) and entity['entity_group'] == 'INVESTMENT') or \
+                 (term_types.get('etf', False) and entity['entity_group'] == 'INVESTMENT') or \
+                 (term_types.get('banking', False) and entity['entity_group'] == 'FINANCIAL_INSTITUTION') or \
+                 (term_types.get('insurance', False) and entity['entity_group'] == 'FINANCIAL_INSTITUTION') or \
+                 (term_types.get('fintech', False) and entity['entity_group'] == 'FINANCIAL_TERM'):
                 filtered_result.append(entity)
+        
         return filtered_result
 
 

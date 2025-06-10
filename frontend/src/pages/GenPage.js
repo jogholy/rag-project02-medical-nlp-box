@@ -8,19 +8,17 @@ const GenPage = () => {
   const [result, setResult] = useState('');
   
   // 方法选择
-  const [method, setMethod] = useState('generate_medical_note');
-  const methods = {
-    generate_medical_note: '生成完整医疗记录',
-    generate_differential_diagnosis: '生成鉴别诊断',
-    generate_treatment_plan: '生成治疗计划'
+  const [method, setMethod] = useState('generate_financial_note');
+  const generationTypes = {
+    generate_financial_note: '生成完整金融记录',
+    generate_summary: '生成摘要',
+    generate_qa: '生成问答对',
+    generate_structured_data: '生成结构化数据'
   };
 
   // 患者信息
   const [patientInfo, setPatientInfo] = useState({
-    name: '',
-    age: '',
-    gender: '',
-    medicalHistory: ''
+    financialHistory: ''
   });
 
   // 症状列表
@@ -57,7 +55,7 @@ const GenPage = () => {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://172.20.116.213:8000/api/gen', {
+      const response = await fetch('http://127.0.0.1:8000/api/gen', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -81,8 +79,8 @@ const GenPage = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">医疗内容生成 🏥</h1>
+    <div className="max-w-2xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">金融内容生成 💰</h1>
       
       <div className="grid grid-cols-3 gap-6">
         {/* 左侧面板：输入表单 */}
@@ -92,48 +90,14 @@ const GenPage = () => {
           {/* 患者基本信息 */}
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">姓名</label>
-              <input
-                type="text"
-                name="name"
-                value={patientInfo.name}
-                onChange={handlePatientInfoChange}
+              <label className="block text-sm font-medium text-gray-700">金融历史</label>
+              <textarea
+                name="financialHistory"
+                value={patientInfo.financialHistory}
+                onChange={(e) => setPatientInfo({...patientInfo, financialHistory: e.target.value})}
+                rows={3}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">年龄</label>
-              <input
-                type="number"
-                name="age"
-                value={patientInfo.age}
-                onChange={handlePatientInfoChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">性别</label>
-              <select
-                name="gender"
-                value={patientInfo.gender}
-                onChange={handlePatientInfoChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-              >
-                <option value="">选择性别</option>
-                <option value="M">男</option>
-                <option value="F">女</option>
-                <option value="O">其他</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700">病史</label>
-              <input
-                type="text"
-                name="medicalHistory"
-                value={patientInfo.medicalHistory}
-                onChange={handlePatientInfoChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
-                placeholder="既往病史..."
+                placeholder="请输入金融历史信息..."
               />
             </div>
           </div>
@@ -149,8 +113,8 @@ const GenPage = () => {
             />
           </div>
 
-          {/* 诊断和治疗（仅在生成医疗记录时显示） */}
-          {method === 'generate_medical_note' && (
+          {/* 诊断和治疗（仅在生成金融记录时显示） */}
+          {method === 'generate_financial_note' && (
             <>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">诊断</label>
@@ -196,7 +160,7 @@ const GenPage = () => {
               onChange={(e) => setMethod(e.target.value)}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
             >
-              {Object.entries(methods).map(([key, label]) => (
+              {Object.entries(generationTypes).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>

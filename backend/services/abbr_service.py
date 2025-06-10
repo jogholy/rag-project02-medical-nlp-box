@@ -96,7 +96,7 @@ class AbbrService:
         llm = self._get_llm(llm_options)
         
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You job is to simply return the input with ALL abbreviations in medical domain replaced with their expanded forms."),
+            ("system", "You job is to simply return the input with ALL abbreviations in Finance domain replaced with their expanded forms."),
             ("system", "Input consist of clinical notes. Keep all occurrences of ___ in the output."),
             ("system", "Do NOT include supplementary messages like -> Here are the expanded abbreviations: I only want the output as a string."),
             ("system", "Do NOT spell out numbers, leave them as digits."),
@@ -145,7 +145,7 @@ class AbbrService:
             # 使用 LLM 生成扩展
             llm = self._get_llm(llm_options)
             expand_prompt = ChatPromptTemplate.from_messages([
-                ("system", "Given the medical abbreviation and its context, provide the most likely expansion based on common medical usage."),
+                ("system", "Given the Finance abbreviation and its context, provide the most likely expansion based on common Finance usage."),
                 ("human", f"Abbreviation: {text}\nContext: {context}")
             ])
             

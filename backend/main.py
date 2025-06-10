@@ -8,6 +8,11 @@ from services.corr_service import CorrService
 from services.gen_service import GenService
 from typing import List, Dict, Optional, Literal, Union, Any
 import logging
+import os
+
+# 设置代理
+os.environ["HTTP_PROXY"] = "http://127.0.0.1:7890"
+os.environ["HTTPS_PROXY"] = "http://127.0.0.1:7890"
 
 # 配置日志
 logging.basicConfig(level=logging.INFO)
@@ -27,7 +32,7 @@ app.add_middleware(
 
 # 初始化各个服务
 ner_service = NERService()  # 命名实体识别服务
-standardization_service = StdService()  # 术语标准化服务
+standardization_service = StdService()  # 金融术语标准化服务
 abbr_service = AbbrService()  # 缩写扩展服务
 gen_service = GenService()  # 文本生成服务
 corr_service = CorrService()  # 拼写纠正服务
@@ -56,16 +61,16 @@ class EmbeddingOptions(BaseModel):
         description="嵌入模型名称"
     )
     dbName: str = Field(
-        default="snomed_bge_m3",
+        default="finance_terms_simple",
         description="向量数据库名称"
     )
     collectionName: str = Field(
-        default="concepts_only_name",
+        default="finance_terms",
         description="集合名称"
     )
 
 class TextInput(BaseInputModel):
-    """文本输入模型，用于标准化和命名实体识别"""
+    """文本输入模型，用于金融术语标准化和命名实体识别"""
     text: str = Field(..., description="输入文本")
     options: Dict[str, bool] = Field(
         default_factory=dict,
@@ -73,7 +78,7 @@ class TextInput(BaseInputModel):
     )
     termTypes: Dict[str, bool] = Field(
         default_factory=dict,
-        description="术语类型"
+        description="金融术语类型"
     )
     embeddingOptions: EmbeddingOptions = Field(
         default_factory=EmbeddingOptions,
@@ -126,53 +131,62 @@ class CorrInput(BaseInputModel):
         description="错误生成选项"
     )
 
-class PatientInfo(BaseModel):
-    """患者信息模型"""
-    name: str = Field(..., description="患者姓名")
+class ClientInfo(BaseModel):
+    """客户信息模型"""
+    name: str = Field(..., description="客户姓名")
     age: Optional[int] = Field(
         None,
-        description="患者年龄",
+        description="客户年龄",
         ge=0
     )
     gender: Optional[Literal["M", "F", "O"]] = Field(
         None,
-        description="患者性别"
+        description="客户性别"
     )
-    medicalHistory: Optional[str] = Field(
+    investmentHistory: Optional[str] = Field(
         None,
-        description="既往病史"
+        description="投资历史"
     )
 
 class GenInput(BaseInputModel):
-    """医疗内容生成输入模型"""
-    patient_info: PatientInfo = Field(..., description="患者信息")
-    symptoms: List[str] = Field(..., description="症状列表")
-    diagnosis: str = Field(
+    """金融内容生成输入模型"""
+    client_info: ClientInfo = Field(..., description="客户信息")
+    investmentGoals: List[str] = Field(..., description="投资目标列表")
+    riskAssessment: str = Field(
         default="",
-        description="诊断结果"
+        description="风险评估结果"
     )
-    treatment: str = Field(
+    portfolio: str = Field(
         default="",
-        description="治疗方案"
+        description="投资组合"
     )
-    method: Literal["generate_medical_note", "generate_differential_diagnosis", "generate_treatment_plan"] = Field(
-        default="generate_medical_note",
+    method: Literal["generate_investment_report", "generate_risk_assessment", "generate_portfolio_plan"] = Field(
+        default="generate_investment_report",
         description="生成方法"
     )
 
-# API 端点：术语标准化
+# API 端点：金融术语标准化
 @app.post("/api/std")
 async def standardization(input: TextInput):
     try:
         # 记录请求信息
         logger.info(f"Received request: text={input.text}, options={input.options}, embeddingOptions={input.embeddingOptions}")
 
-        # 配置术语类型
-        all_medical_terms = input.options.pop('allMedicalTerms', False)
-        term_types = {'allMedicalTerms': all_medical_terms}
+        # 正确配置术语类型 - 不修改原始options
+        term_types = {}
+        if 'allFinancialTerms' in input.options:
+            term_types['allFinancialTerms'] = input.options['allFinancialTerms']
+        else:
+            # 如果没有allFinancialTerms，则使用具体的术语类型
+            term_types = input.options.copy()
 
         # 进行命名实体识别
         ner_results = ner_service.process(input.text, input.options, term_types)
+
+        # 添加调试日志
+        logger.info(f"NER results: {ner_results}")
+        entities = ner_results.get('entities', [])
+        logger.info(f"Recognized entities: {entities}")
 
         # 初始化标准化服务
         standardization_service = StdService(
@@ -185,7 +199,7 @@ async def standardization(input: TextInput):
         # 获取识别到的实体
         entities = ner_results.get('entities', [])
         if not entities:
-            return {"message": "No medical terms have been recognized", "standardized_terms": []}
+            return {"message": "No financial terms have been recognized", "standardized_terms": []}
 
         # 标准化每个实体
         standardized_results = []
@@ -198,7 +212,7 @@ async def standardization(input: TextInput):
             })
 
         return {
-            "message": f"{len(entities)} medical terms have been recognized and standardized",
+            "message": f"{len(entities)} financial terms have been recognized and standardized",
             "standardized_terms": standardized_results
         }
 
@@ -258,33 +272,33 @@ async def expand_abbreviations(input: AbbrInput):
         logger.error(f"Error in abbreviation expansion: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-# API 端点：医疗文本生成
+# API 端点：金融文本生成
 @app.post("/api/gen")
-async def generate_medical_content(input: GenInput):
+async def generate_financial_content(input: GenInput):
     try:
-        if input.method == "generate_medical_note":  # 生成病历
-            return gen_service.generate_medical_note(
-                input.patient_info,
-                input.symptoms,
-                input.diagnosis,
-                input.treatment,
+        if input.method == "generate_investment_report":  # 生成投资报告
+            return gen_service.generate_investment_report(
+                input.client_info,
+                input.investmentGoals,
+                input.riskAssessment,
+                input.portfolio,
                 input.llmOptions
             )
-        elif input.method == "generate_differential_diagnosis":  # 生成鉴别诊断
-            return gen_service.generate_differential_diagnosis(
-                input.symptoms,
+        elif input.method == "generate_risk_assessment":  # 生成风险评估
+            return gen_service.generate_risk_assessment(
+                input.investmentGoals,
                 input.llmOptions
             )
-        elif input.method == "generate_treatment_plan":  # 生成治疗计划
-            return gen_service.generate_treatment_plan(
-                input.diagnosis,
-                input.patient_info,
+        elif input.method == "generate_portfolio_plan":  # 生成投资组合计划
+            return gen_service.generate_portfolio_plan(
+                input.riskAssessment,
+                input.client_info,
                 input.llmOptions
             )
         else:
             raise HTTPException(status_code=400, detail="Invalid method")
     except Exception as e:
-        logger.error(f"Error in medical content generation: {str(e)}")
+        logger.error(f"Error in financial content generation: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 # 启动服务器

@@ -12,18 +12,18 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-class StdService:
+class FinanceStdService:
     """
-    医学术语标准化服务
-    使用向量数据库进行医学术语的标准化和相似度搜索
+    金融术语标准化服务
+    使用向量数据库进行金融术语的标准化和相似度搜索
     """
     def __init__(self, 
                  provider="huggingface",
                  model="BAAI/bge-m3",
-                 db_path="db/snomed_bge_m3.db",
-                 collection_name="concepts_only_name"):
+                 db_path="db/finance_terms_simple.db",
+                 collection_name="finance_terms"):
         """
-        初始化标准化服务
+        初始化金融术语标准化服务
         
         Args:
             provider: 嵌入模型提供商 (openai/bedrock/huggingface)
@@ -56,7 +56,7 @@ class StdService:
 
     def search_similar_terms(self, query: str, limit: int = 5) -> List[Dict]:
         """
-        搜索与查询文本相似的医学术语
+        搜索与查询文本相似的金融术语
         
         Args:
             query: 查询文本
@@ -64,15 +64,11 @@ class StdService:
             
         Returns:
             包含相似术语信息的列表，每个术语包含：
-            - concept_id: 概念ID
-            - concept_name: 概念名称
-            - domain_id: 领域ID
-            - vocabulary_id: 词汇表ID
-            - concept_class_id: 概念类别ID
-            - standard_concept: 是否标准概念
-            - concept_code: 概念代码
-            - synonyms: 同义词
-            - distance: 相似度距离
+            - term: 金融术语名称
+            - category: 术语分类
+            - input_file: 数据来源文件
+            - similarity: 相似度分数（0-1，1为最相似）
+            - distance: 距离分数（可选）
         """
         # 获取查询的向量表示
         query_embedding = self.embedding_func.embed_query(query)
@@ -83,33 +79,85 @@ class StdService:
             "data": [query_embedding],
             "limit": limit,
             "output_fields": [
-                "concept_id", "concept_name", "domain_id", 
-                "vocabulary_id", "concept_class_id", "standard_concept",
-                "concept_code", "synonyms"
-            ],
-            # "filter": "domain_id == 'Condition'"
+                "term", "category", "input_file"
+            ]
         }
         
         # 搜索相似项
         search_result = self.client.search(**search_params)
 
         results = []
-        for hit in search_result[0]:
-            results.append({
-                "concept_id": hit['entity'].get('concept_id'),
-                "concept_name": hit['entity'].get('concept_name'),
-                "domain_id": hit['entity'].get('domain_id'),
-                "vocabulary_id": hit['entity'].get('vocabulary_id'),
-                "concept_class_id": hit['entity'].get('concept_class_id'),
-                "standard_concept": hit['entity'].get('standard_concept'),
-                "concept_code": hit['entity'].get('concept_code'),
-                "synonyms": hit['entity'].get('synonyms'),
-                "distance": float(hit['distance'])
-            })
-
+        if 'data' in search_result and len(search_result['data']) > 0:
+            for hit in search_result['data'][0]:
+                if 'entity' in hit:
+                    results.append({
+                        "term": hit['entity'].get('term'),
+                        "category": hit['entity'].get('category'),
+                        "input_file": hit['entity'].get('input_file'),
+                        "similarity": 1 - float(hit['distance']) if 'distance' in hit else None,
+                        "distance": float(hit['distance']) if 'distance' in hit else None
+                    })
         return results
+
+    def get_term_by_name(self, term_name: str) -> Dict:
+        """
+        根据术语名称精确查询金融术语
+        
+        Args:
+            term_name: 金融术语名称
+            
+        Returns:
+            包含术语信息的字典
+        """
+        query_result = self.client.query(
+            collection_name=self.collection_name,
+            filter=f"term == '{term_name}'",
+            output_fields=["term", "category", "input_file"],
+            limit=1
+        )
+        
+        if 'data' in query_result and len(query_result['data']) > 0:
+            return query_result['data'][0]
+        return None
+
+    def get_terms_by_category(self, category: str, limit: int = 10) -> List[Dict]:
+        """
+        根据分类查询金融术语
+        
+        Args:
+            category: 术语分类
+            limit: 返回结果的最大数量
+            
+        Returns:
+            包含术语信息的列表
+        """
+        query_result = self.client.query(
+            collection_name=self.collection_name,
+            filter=f"category == '{category}'",
+            output_fields=["term", "category", "input_file"],
+            limit=limit
+        )
+        
+        if 'data' in query_result:
+            return query_result['data']
+        return []
+
+    def get_collection_stats(self) -> Dict:
+        """
+        获取集合统计信息
+        
+        Returns:
+            包含统计信息的字典
+        """
+        return self.client.get_collection_stats(self.collection_name)
 
     def __del__(self):
         """清理资源，释放集合"""
         if hasattr(self, 'client') and hasattr(self, 'collection_name'):
-            self.client.release_collection(self.collection_name)
+            try:
+                self.client.release_collection(self.collection_name)
+            except Exception as e:
+                logger.warning(f"Error releasing collection: {e}")
+
+# 为了保持向后兼容，保留原来的类名作为别名
+StdService = FinanceStdService

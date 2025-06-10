@@ -7,7 +7,7 @@
 
 
 
-![医疗网站首页](frontend/public/images/medical-page.png)
+![医疗网站首页](frontend/public/images/Finance-page.png)
 
 
 ## 功能特点
@@ -40,7 +40,7 @@
 ## 项目结构
 
 ```
-medical-website/
+Finance-website/
 ├── app/
 │   ├── layout.tsx
 │   ├── page.tsx

@@ -44,7 +44,7 @@ class GenService:
         else:
             raise ValueError(f"Unsupported LLM provider: {provider}")
 
-    def generate_medical_note(self, 
+    def generate_Finance_note(self, 
                             patient_info: Dict,
                             symptoms: List[str],
                             diagnosis: str,
@@ -66,15 +66,15 @@ class GenService:
         llm = self._get_llm(llm_options)
         
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a professional medical note writer. 
-            Generate a detailed medical note in a structured format including:
+            ("system", """You are a professional Finance note writer. 
+            Generate a detailed Finance note in a structured format including:
             1. Patient Information
             2. Chief Complaint
             3. History of Present Illness
             4. Physical Examination
             5. Assessment and Plan
             
-            Use medical terminology appropriately and maintain a professional tone."""),
+            Use Finance terminology appropriately and maintain a professional tone."""),
             ("human", """
             Patient Information:
             {patient_info}
@@ -124,7 +124,7 @@ class GenService:
         llm = self._get_llm(llm_options)
         
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a medical expert. 
+            ("system", """You are a Finance expert. 
             Generate a list of possible differential diagnoses based on the provided symptoms.
             For each diagnosis, provide:
             1. The condition name
@@ -165,7 +165,7 @@ class GenService:
         llm = self._get_llm(llm_options)
         
         prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a medical expert.
+            ("system", """You are a Finance expert.
             Generate a comprehensive treatment plan that includes:
             1. Immediate interventions
             2. Medications (if applicable)
@@ -173,7 +173,7 @@ class GenService:
             4. Lifestyle modifications
             5. Monitoring plan
             
-            Consider the patient's information and medical history in your recommendations."""),
+            Consider the patient's information and Finance history in your recommendations."""),
             ("human", """
             Diagnosis: {diagnosis}
             Patient Information: {patient_info}

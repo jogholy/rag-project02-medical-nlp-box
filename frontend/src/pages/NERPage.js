@@ -56,7 +56,7 @@ const NERPage = () => {
     symptom: false,
     disease: false,
     therapeuticProcedure: false,
-    allMedicalTerms: false,
+    allFinancialTerms: false,
   });
   const [options, setOptions] = useState({
     combineBioStructure: false,
@@ -64,12 +64,12 @@ const NERPage = () => {
 
   const handleTermTypeChange = (e) => {
     const { name, checked } = e.target;
-    if (name === 'allMedicalTerms') {
+    if (name === 'allFinancialTerms') {
       setTermTypes({
         symptom: false,
         disease: false,
         therapeuticProcedure: false,
-        allMedicalTerms: checked,
+        allFinancialTerms: checked,
       });
     } else {
       setTermTypes({ ...termTypes, [name]: checked });
@@ -83,7 +83,7 @@ const NERPage = () => {
   const handleSubmit = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('http://172.20.116.213:8000/api/ner', {
+      const response = await fetch('http://127.0.0.1:8000/api/ner', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,17 +130,17 @@ const NERPage = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">医疗命名实体识别 🏥</h1>
+      <h1 className="text-3xl font-bold mb-6">金融命名实体识别 💰</h1>
       <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-        <h2 className="text-xl font-semibold mb-4">输入医疗文本</h2>
+        <h2 className="text-xl font-semibold mb-4">输入金融文本</h2>
         <TextInput
           value={input}
           onChange={(e) => setInput(e.target.value)}
           rows={4}
-          placeholder="请输入需要进行命名实体识别的医疗文本..."
+          placeholder="请输入需要进行命名实体识别的金融文本..."
         />
         
-        <h3 className="text-lg font-semibold mb-2">医疗术语类型</h3>
+        <h3 className="text-lg font-semibold mb-2">金融术语类型</h3>
         <div className="mb-4">
           <label>
             <input
@@ -149,7 +149,7 @@ const NERPage = () => {
               checked={termTypes.symptom}
               onChange={handleTermTypeChange}
             />
-            症状
+            金融产品
           </label>
           <label className="ml-4">
             <input
@@ -158,7 +158,7 @@ const NERPage = () => {
               checked={termTypes.disease}
               onChange={handleTermTypeChange}
             />
-            疾病
+            投资类型
           </label>
           <label className="ml-4">
             <input
@@ -167,16 +167,16 @@ const NERPage = () => {
               checked={termTypes.therapeuticProcedure}
               onChange={handleTermTypeChange}
             />
-            治疗程序
+            交易操作
           </label>
           <label className="ml-4">
             <input
               type="checkbox"
-              name="allMedicalTerms"
-              checked={termTypes.allMedicalTerms}
+              name="allFinancialTerms"
+              checked={termTypes.allFinancialTerms}
               onChange={handleTermTypeChange}
             />
-            所有医疗术语
+            所有金融术语
           </label>
         </div>
 
